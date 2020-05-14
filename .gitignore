@@ -1,0 +1,8 @@
+node_modules
+build/
+.idea/
+.ipynb_checkpoints/
+__pycache__/
+*.pyc
+
+/lrcplayer/src/assets/kiseki.mp3

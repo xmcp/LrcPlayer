@@ -1,0 +1,21 @@
+body {
+  background-color: #eee;
+  margin: 0;
+}
+
+.container {
+  padding: 1em;
+  min-height: 100vh;
+  background-color: white;
+  max-width: 700px;
+  margin: auto;
+  box-shadow: 0 0 10px rgba(0,0,0,.15);
+}
+
+h1 {
+  font-weight: normal;
+}
+
+.anticon {
+  vertical-align: -.15em;
+}
