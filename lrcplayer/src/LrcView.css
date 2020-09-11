@@ -1,8 +1,9 @@
 .lrc-player {
     background-color: hsl(39,100%,80%);
-    padding: 0 .5em;
     max-width: 400px;
+    height: 5em;
     margin: auto;
+    overflow: hidden;
 }
 
 .lrc-left-box {
@@ -10,8 +11,18 @@
     width: 3em;
     height: 5em;
 }
+.lrc-right-box {
+    float: right;
+    width: 2.5em;
+    height: 5em;
+    text-align: center;
+}
 .lrc-main-box {
-    margin-left: 3.5em;
+    margin-left: 3em;
+    margin-right: 2.5em;
+    white-space: nowrap;
+    pointer-events: none;
+    text-shadow: 0 0 2px white;
 }
 
 .lrc-play-btn {
@@ -19,7 +30,7 @@
     height: 2em;
     line-height: 2em;
     text-align: center;
-    margin: .6em auto 0 auto;
+    margin: .7em auto 0 auto;
     cursor: pointer;
     border-radius: 50%;
 }
@@ -28,35 +39,41 @@
 }
 
 .lrc-time-box {
-    opacity: .6;
+    opacity: .5;
     text-align: center;
-    width: 3em;
     pointer-events: none;
 }
 
 .lrc-chunk {
     white-space: pre;
+    display: inline-block;
 }
 
 .lrc-chunk rt {
     transform: translateY(0.2rem);
+    width: 1rem; /* avoid resizing the box */
 }
 
 .lrc-chunk-ftr {
-    opacity: .25;
+    opacity: .2;
+    transform: translateX(-1px);
 }
 .lrc-chunk-prs {
-    animation: lrc-chunk-showing ease-out 300ms;
+    animation: lrc-chunk-showing-opacity ease-out 300ms, lrc-chunk-showing-move ease 200ms;
 }
 
-@keyframes lrc-chunk-showing {
-    from {opacity: .25;}
+@keyframes lrc-chunk-showing-opacity {
+    from {opacity: .2;}
     to {opacity: 1;}
+}
+@keyframes lrc-chunk-showing-move {
+    from {transform: translateX(-1px);}
+    to {transform: translateX(0);}
 }
 
 .lrc-line-orig {
-    line-height: 3.1em;
-    min-height: 3.1em;
+    line-height: 3.3em;
+    height: 3.3em;
 }
 
 .lrc-line-trans {
@@ -69,7 +86,7 @@
 
 .lrc-anim-enter {
     opacity: 0;
-    transform: translateX(.2em);
+    transform: translateX(-.2em);
 }
 .lrc-anim-enter-active {
     opacity: 1;
@@ -82,6 +99,38 @@
 }
 .lrc-anim-exit-active {
     opacity: 0;
-    transform: translateX(-.2em);
-    transition: opacity 150ms ease-out, transform 150ms ease-out;
+    transform: translateX(.2em);
+    transition: opacity 150ms ease-out, transform 150ms ease-in;
+}
+
+.lrc-vol-adjust, .lrc-vol-current {
+    opacity: .5;
+    text-shadow: 0 0 3px white;
+    user-select: none;
+}
+
+.lrc-vol-adjust {
+    font-family: Consolas, Courier, monospace;
+    cursor: pointer;
+}
+.lrc-vol-adjust:hover {
+    text-shadow: 0 0 1px black;
+    opacity: 1;
+}
+.lrc-vol-adjust-up {
+    height: 2em;
+    line-height: 2em;
+    padding-bottom: .5em;
+    margin-bottom: -.5em;
+}
+.lrc-vol-current {
+    pointer-events: none;
+    height: 1em;
+    line-height: 1em;
+}
+.lrc-vol-adjust-down {
+    height: 2em;
+    line-height: 2em;
+    padding-top: .5em;
+    margin-top: -.5em;
 }

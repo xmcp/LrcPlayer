@@ -5,7 +5,7 @@ import {PauseOutlined, PlayCircleOutlined} from '@ant-design/icons';
 
 import './LrcView.css';
 
-const CHUNK_OFFSET=150;
+const CHUNK_OFFSET=250;
 const LINE_OFFSET=350;
 
 function useTrack(ds,t) { // return idx
@@ -42,24 +42,24 @@ function LrcView(props) {
     const orig_idx=useTrack(line.orig,props.t+CHUNK_OFFSET);
     const roma_idx=useTrack(line.roma,props.t+CHUNK_OFFSET);
 
-    const roma=line.roma[roma_idx]||[0,''];
-    const trans=(line.trans[0]||[0,''])[1];
+    const roma=line.roma[roma_idx] || [0, ''];
+    const trans=(line.trans[0] || [0, ''])[1];
 
     return (
-        <SwitchTransition mode="out-in">
-            <CSSTransition key={line_idx} classNames="lrc-anim" timeout={150}>
-                <div>
+        <div>
+            <SwitchTransition mode="out-in">
+                <CSSTransition key={line_idx} classNames="lrc-anim" timeout={150}>
                     <div className="lrc-line-orig">
-                        {line.orig.map((chunk,i)=> {
+                        {line.orig.map((chunk, i) => {
                             let mode=(i===orig_idx ? 'prs' : i<orig_idx ? 'pst' : 'ftr');
                             if(mode==='prs') // add roma ruby
                                 return (
                                     <span key={i} className={'lrc-chunk lrc-chunk-'+mode}>
-                                        <ruby>
-                                            {chunk[1]}
-                                            <rt>{roma[1].trim()}</rt>
-                                        </ruby>
-                                    </span>
+                                            <ruby>
+                                                <span className="lrc-ruby-base">{chunk[1]}</span>
+                                                <rt>{roma[1].trim()}</rt>
+                                            </ruby>
+                                        </span>
                                 );
                             else
                                 return (
@@ -67,12 +67,21 @@ function LrcView(props) {
                                 );
                         })}
                     </div>
-                    <div className="lrc-line-trans">
-                        {trans}
-                    </div>
+                </CSSTransition>
+            </SwitchTransition>
+            {props.translate_anim ?
+                <SwitchTransition mode="out-in">
+                    <CSSTransition key={line_idx} classNames="lrc-anim" timeout={150}>
+                        <div className="lrc-line-trans">
+                            {trans}
+                        </div>
+                    </CSSTransition>
+                </SwitchTransition> :
+                <div className="lrc-line-trans">
+                    {trans}
                 </div>
-            </CSSTransition>
-        </SwitchTransition>
+            }
+        </div>
     )
 }
 LrcView.propTypes={
@@ -106,16 +115,16 @@ TimeStr.propTypes={
 
 function make_vol_effect(elem,vol) {
     if(!elem) return;
-    const fgcolor='hsl(39,100%,70%)';
-    const bgcolor='hsl(39,100%,80%)';
+    const fgcolor='hsl(39,100%,75%)';
+    const bgcolor='hsl(39,100%,83%)';
     const width_perc=(vol*100).toFixed(1);
     elem.style.background=`linear-gradient(to right, ${fgcolor}, ${fgcolor} ${width_perc}%, ${bgcolor} ${width_perc}%)`;
 }
 
 const VOL_AVG_DOWN=.85;
 const VOL_AVG_UP=.65;
-const VOL_BASE=.5;
-const VOL_AMPLIFY=8;
+const VOL_BASE=.1;
+const VOL_AMPLIFY=2;
 
 function LrcPlayer_(props,fwd_ref) {
     const _audio_elem=useRef(null);
@@ -123,6 +132,7 @@ function LrcPlayer_(props,fwd_ref) {
     const box_elem=useRef(null);
     const [t,set_t]=useState(0);
     const [playing,set_playing]=useState(false);
+    const [cur_vol,set_cur_vol]=useState(50);
 
     const audio_elem=fwd_ref||_audio_elem;
 
@@ -168,6 +178,11 @@ function LrcPlayer_(props,fwd_ref) {
                     }
                     let rms = Math.sqrt(sum / bufLength);
 
+                    if(audio_elem.current.volume===0)
+                        rms=0;
+                    else
+                        rms/=audio_elem.current.volume;
+
                     if(!audio_elem.current || audio_elem.current.paused)
                         rms=0;
                     else
@@ -208,12 +223,19 @@ function LrcPlayer_(props,fwd_ref) {
         return ()=>{
             cancelAnimationFrame(fn);
         };
-    },[]);
+    },[props.visualize_vol_amplify]);
+
+    useEffect(()=>{
+        if(audio_elem.current) {
+            audio_elem.current.volume=cur_vol/100;
+            //alert(audio_elem.current.volume);
+        }
+    },[audio_elem,cur_vol]);
 
     function toggle_pause() {
         if(audio_elem.current) {
             if(audio_elem.current.paused) { // -> play
-                //audio_elem.current.volume=.5;
+                audio_elem.current.volume=cur_vol/100;
                 audio_elem.current.play();
 
                 // https://developers.google.com/web/updates/2017/09/autoplay-policy-changes
@@ -224,6 +246,21 @@ function LrcPlayer_(props,fwd_ref) {
                 audio_elem.current.pause();
         }
     }
+
+    function adjust_vol_up() {
+        if(cur_vol>=100) set_cur_vol(100);
+        else if(cur_vol>=30) set_cur_vol(cur_vol+10);
+        else set_cur_vol(cur_vol+5);
+    }
+
+    function adjust_vol_down() {
+        if(cur_vol<=0) set_cur_vol(0);
+        else if(cur_vol<=30) set_cur_vol(cur_vol-5);
+        else set_cur_vol(cur_vol-10);
+    }
+
+    // https://stackoverflow.com/questions/14087355/feature-test-for-html5-audio-restrictions-in-ios
+    let should_hide_vol_ctrl=/(iPad|iPhone|iPod);/.test(navigator.userAgent);
 
     return (
         <div className="lrc-player" ref={box_elem}>
@@ -236,8 +273,13 @@ function LrcPlayer_(props,fwd_ref) {
                     <TimeStr secs={Math.floor(t/1000)} />
                 </div>
             </div>
+            <div className="lrc-right-box" style={should_hide_vol_ctrl ? {visibility: 'hidden'} : {}}>
+                <div className="lrc-vol-adjust lrc-vol-adjust-up" onClick={adjust_vol_up}>V+</div>
+                <div className="lrc-vol-current">{cur_vol}</div>
+                <div className="lrc-vol-adjust lrc-vol-adjust-down" onClick={adjust_vol_down}>V-</div>
+            </div>
             <div className="lrc-main-box">
-                <LrcView lyrics={props.lyrics} t={t} />
+                <LrcView lyrics={props.lyrics} t={t} translate_anim={props.translate_anim||true} />
             </div>
         </div>
     );
@@ -248,4 +290,5 @@ LrcPlayer.propTypes={
     src: PropTypes.string.isRequired,
     lyrics: PropTypes.object.isRequired,
     visualize_vol_amplify: PropTypes.number,
+    translate_anim: PropTypes.bool,
 };

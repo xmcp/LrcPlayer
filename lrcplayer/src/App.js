@@ -18,10 +18,18 @@ function App() {
                     ）
                 </li>
                 <li>同时显示原词、罗马音和翻译歌词</li>
+                <li>一些动画效果</li>
                 <li>
                     音量可视化（
                     <a href="https://stackoverflow.com/questions/13958158/why-arent-safari-or-firefox-able-to-process-audio-data-from-mediaelementsource?noredirect=1&lq=1" target="_blank" rel="noreferrer noopener">
                         不支持Safari
+                    </a>
+                    ）
+                </li>
+                <li>
+                    音量调节控件（
+                    <a href="https://stackoverflow.com/questions/14087355/feature-test-for-html5-audio-restrictions-in-ios" target="_blank" rel="noreferrer noopener">
+                        不支持iOS
                     </a>
                     ）
                 </li>
@@ -34,8 +42,7 @@ function App() {
             </p>
             <p>
                 <button onClick={()=>ref.current.play()}>play()</button> ,&nbsp;
-                <button onClick={()=>ref.current.pause()}>pause()</button> ,&nbsp;
-                <button onClick={()=>{try{ref.current.volume=parseFloat(prompt('$0.volume='))}catch(_){}}}>volume=</button> , etc.
+                <button onClick={()=>ref.current.pause()}>pause()</button> ,&nbsp; etc.
             </p>
         </div>
     );
